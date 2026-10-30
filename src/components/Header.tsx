@@ -40,7 +40,7 @@ export const Header = ({
             width={2080}
             height={478}
             priority
-            className="h-8 w-auto"
+            className="h-9 w-auto"
           />
         ) : onBack ? (
           <button
@@ -54,10 +54,16 @@ export const Header = ({
         ) : null}
       </div>
       <div className="min-w-0 flex-1">
-        <h1 className="truncate text-[15px] font-bold leading-tight">{title}</h1>
-        {subtitle ? (
-          <p className="truncate text-[11px] leading-tight text-sango-cream/70">{subtitle}</p>
-        ) : null}
+        {showLogo ? (
+          <h1 className="sr-only">{title}</h1>
+        ) : (
+          <>
+            <h1 className="truncate text-[15px] font-bold leading-tight">{title}</h1>
+            {subtitle ? (
+              <p className="truncate text-[11px] leading-tight text-sango-cream/70">{subtitle}</p>
+            ) : null}
+          </>
+        )}
       </div>
       <div className="flex h-11 w-11 shrink-0 items-center justify-center">
         {onShare ? (

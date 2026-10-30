@@ -54,11 +54,7 @@ export const HotelsScreen = () => {
   return (
     <div className="flex flex-1 flex-col bg-canvas">
       <div className="sticky top-0 z-30">
-        <Header
-          title="Sango Hotels"
-          subtitle="Direct booking Sango Hotel Management"
-          showLogo
-        />
+        <Header title="Sango Hotels" showLogo />
         <HotelSearchBar value={hotelQuery} onChange={setHotelQuery} />
         <SearchSummaryBar search={search} onOpen={() => setPickerOpen(true)} />
       </div>
