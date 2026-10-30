@@ -38,6 +38,25 @@ Katalog ada di `src/data/hotelCatalog.ts` (satu file, mudah diganti saat data as
 
 Harga, ketersediaan, dan tipe kamar adalah **data contoh** untuk demo.
 
+## Beranda
+
+Urutan beranda (`src/components/hotels/HotelsScreen.tsx`):
+
+1. Header + kolom pencarian + ringkasan tanggal (sticky).
+2. **Hero carousel** (`home/HeroCarousel.tsx`) — 3 slide promo, auto-slide 5 detik, bisa digeser, dot bisa diketuk, dan berhenti otomatis bila pengguna menyentuh atau mengaktifkan `prefers-reduced-motion`.
+3. **Menu layanan** (`home/ServiceGrid.tsx`) — grid 4 kolom: Rent & Food aktif, Spa & Transport bertanda "Segera".
+4. Daftar hotel.
+
+## Layanan Rent & Food
+
+Data contoh ada di `src/data/serviceCatalog.ts`:
+
+- `RENT_VEHICLES` — 6 kendaraan (2 sepeda, 2 motor, 2 mobil) dengan harga per hari.
+- `FOOD_MENUS` — 8 menu khas hotel.
+- `PROMO_BANNERS` — 3 banner promo.
+
+Layar dibuka lewat state `activeService` di store (bukan step booking, agar alur kamar tidak terganggu). Setiap layanan punya pilihan hotel, perhitungan total, dan sheet konfirmasi dengan kode permintaan (`RNT-…` / `FOD-…`). Pembayaran belum disimulasikan — di luar cakupan tahap ini.
+
 ## Palet Warna
 
 Mengikuti brand Sango Hotel Management (charcoal, emas, krem):
@@ -79,6 +98,9 @@ src/
 ├── app/            layout.tsx (frame 480px, safe-area, DM Sans), page.tsx (orkestrasi step)
 ├── components/     Header, DateGuestPickerModal, RoomCard, RoomDetailModal,
 │                   CheckoutSection, PaymentSection, VoucherSection
+│   ├── home/       HeroCarousel, ServiceGrid
+│   ├── service/    ServiceScreen, RentService, FoodService, QuantityStepper,
+│                   ServiceHotelSelect, ServiceSuccessSheet
 │   ├── ui/         Button, Badge, BottomSheet, Skeleton, ToastHost, StickyActionBar
 │   ├── hotels/     HotelsScreen, HotelList, HotelCard, HotelFilterButton, CityFilterSheet
 │   ├── search/     SearchSummaryBar, HotelSearchBar, CalendarGrid, GuestCounter
@@ -88,7 +110,7 @@ src/
 │   ├── voucher/    MockQrCode, VoucherDetails, VoucherActions
 │   ├── rooms/      RoomsScreen, RoomList, HotelInfoCard
 │   └── common/     StepProgress
-├── data/           hotelCatalog.ts (4 hotel Sango), hotels.ts, mockData.ts
+├── data/           hotelCatalog.ts (4 hotel Sango), serviceCatalog.ts, hotels.ts, mockData.ts
 ├── types/          booking.ts, bridge.ts
 ├── lib/            formatters, date, pricing, validation, hotelFilter, utils
 ├── stores/         useBookingStore.ts
@@ -98,7 +120,7 @@ src/
 
 ## Alur 6 Layar
 
-1. Daftar hotel + pencarian + filter kota (Semarang / Jakarta)
+1. Beranda: carousel promo, layanan Rent & Food, daftar hotel + pencarian + filter kota
 2. Detail hotel & pilih tipe kamar
 3. Bottom sheet detail kamar & paket (room only / sarapan)
 4. Rincian pemesanan (data tamu, permintaan khusus, rincian biaya)

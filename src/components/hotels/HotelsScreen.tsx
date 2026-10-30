@@ -1,7 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Header } from '@/components/Header';
+import { HeroCarousel } from '@/components/home/HeroCarousel';
+import { ServiceGrid } from '@/components/home/ServiceGrid';
 import { SearchSummaryBar } from '@/components/search/SearchSummaryBar';
 import { HotelSearchBar } from '@/components/search/HotelSearchBar';
 import { DateGuestPickerModal } from '@/components/DateGuestPickerModal';
@@ -11,7 +13,9 @@ import { CityFilterSheet } from '@/components/hotels/CityFilterSheet';
 import { useBookingStore } from '@/stores/useBookingStore';
 import { closeWebview } from '@/services/bridge.service';
 import { HOTELS } from '@/data/hotels';
+import { PROMO_BANNERS } from '@/data/serviceCatalog';
 import { buildCityOptions, filterHotels } from '@/lib/hotelFilter';
+import type { PromoBanner } from '@/types/service';
 
 export const HotelsScreen = () => {
   const search = useBookingStore((state) => state.search);
@@ -23,6 +27,8 @@ export const HotelsScreen = () => {
   const resetHotelFilters = useBookingStore((state) => state.resetHotelFilters);
   const selectHotel = useBookingStore((state) => state.selectHotel);
   const showToast = useBookingStore((state) => state.showToast);
+  const openService = useBookingStore((state) => state.openService);
+  const listRef = useRef<HTMLDivElement | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -37,6 +43,14 @@ export const HotelsScreen = () => {
     const timer = window.setTimeout(() => setLoading(false), 700);
     return () => window.clearTimeout(timer);
   }, []);
+
+  const handleBannerAction = (banner: PromoBanner) => {
+    if (banner.action === 'booking') {
+      listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    openService(banner.action);
+  };
 
   const handleBack = () => {
     const target = closeWebview();
@@ -61,7 +75,11 @@ export const HotelsScreen = () => {
       </div>
 
       <div className="flex-1 space-y-2.5 px-3 pb-[calc(6rem+var(--host-bottom-offset,0px))] pt-2.5">
-        <div className="flex items-center justify-between px-0.5">
+        <HeroCarousel banners={PROMO_BANNERS} onAction={handleBannerAction} />
+
+        <ServiceGrid onSelect={openService} />
+
+        <div ref={listRef} className="flex items-center justify-between px-0.5 scroll-mt-[168px]">
           <h2 className="text-[15px] font-bold text-slate-900">
             {cityFilter ? `Hotel di ${cityFilter}` : 'Rekomendasi Hotel'}
           </h2>
