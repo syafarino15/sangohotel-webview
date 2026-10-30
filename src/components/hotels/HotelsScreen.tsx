@@ -11,6 +11,7 @@ import { HotelList, HotelListSkeleton } from '@/components/hotels/HotelList';
 import { HotelFilterButton } from '@/components/hotels/HotelFilterButton';
 import { CityFilterSheet } from '@/components/hotels/CityFilterSheet';
 import { useBookingStore } from '@/stores/useBookingStore';
+import { useServiceStore } from '@/stores/useServiceStore';
 import { HOTELS } from '@/data/hotels';
 import { PROMO_BANNERS } from '@/data/serviceCatalog';
 import { buildCityOptions, filterHotels } from '@/lib/hotelFilter';
@@ -26,7 +27,7 @@ export const HotelsScreen = () => {
   const resetHotelFilters = useBookingStore((state) => state.resetHotelFilters);
   const selectHotel = useBookingStore((state) => state.selectHotel);
   const showToast = useBookingStore((state) => state.showToast);
-  const openService = useBookingStore((state) => state.openService);
+  const openService = useServiceStore((state) => state.openService);
   const listRef = useRef<HTMLDivElement | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);

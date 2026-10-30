@@ -1,3 +1,5 @@
+import type { PaymentMethodId } from './booking';
+
 export type ServiceId = 'rent' | 'food';
 
 export type RentCategory = 'Bike' | 'Motorcycle' | 'Car';
@@ -5,6 +7,11 @@ export type RentCategory = 'Bike' | 'Motorcycle' | 'Car';
 export type FoodCategory = 'Main' | 'Side' | 'Dessert' | 'Drink';
 
 export type PromoAction = ServiceId | 'booking';
+
+/** Ambil sendiri di hotel, atau diantar ke kamar tamu. */
+export type FulfilmentMethod = 'pickup' | 'delivery';
+
+export type ServiceStep = 'select' | 'checkout' | 'payment' | 'receipt';
 
 export interface RentVehicle {
   id: string;
@@ -34,13 +41,35 @@ export interface PromoBanner {
   action: PromoAction;
 }
 
-export interface ServiceOrder {
-  code: string;
+export interface ServiceLineItem {
+  id: string;
+  label: string;
+  qty: number;
+  unitPrice: number;
+}
+
+/** Data yang dikumpulkan di langkah pemesanan sebelum pembayaran. */
+export interface ServiceDraft {
   service: ServiceId;
   hotelId: string;
-  hotelName: string;
-  itemLabel: string;
-  quantity: number;
-  unit: string;
+  fulfilment: FulfilmentMethod;
+  lines: ServiceLineItem[];
+  days: number;
+  guestName: string;
+  guestPhone: string;
+  roomNumber: string;
+  notes: string;
+}
+
+export interface ServicePayment {
+  method: PaymentMethodId;
+  status: 'IDLE' | 'PENDING' | 'PAID' | 'EXPIRED';
+  expiresAt: number | null;
+  paidAt: string | null;
+}
+
+export interface ServiceTotals {
+  subtotal: number;
+  tax: number;
   total: number;
 }

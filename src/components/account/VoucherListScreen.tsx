@@ -1,12 +1,16 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Ticket } from 'lucide-react';
+import { ChevronRight, Ticket } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { formatCurrency, formatDateWithDay } from '@/lib/formatters';
 import { useSessionStore } from '@/stores/useSessionStore';
 
-export const VoucherListScreen = () => {
+interface VoucherListScreenProps {
+  onOpen: (code: string) => void;
+}
+
+export const VoucherListScreen = ({ onOpen }: VoucherListScreenProps) => {
   const history = useSessionStore((state) => state.history);
   const vouchers = useMemo(
     () => history.filter((record) => record.kind === 'hotel'),
@@ -32,9 +36,11 @@ export const VoucherListScreen = () => {
           </div>
         ) : (
           vouchers.map((voucher) => (
-            <article
+            <button
               key={voucher.code}
-              className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-card"
+              type="button"
+              onClick={() => onOpen(voucher.code)}
+              className="w-full overflow-hidden rounded-2xl border border-slate-100 bg-white text-left shadow-card active:bg-slate-50"
             >
               <div className="flex items-center justify-between gap-2 border-b border-dashed border-slate-200 px-3.5 py-2.5">
                 <div className="min-w-0">
@@ -87,12 +93,13 @@ export const VoucherListScreen = () => {
 
                 <div className="flex items-center justify-between border-t border-dashed border-slate-200 pt-2">
                   <span className="text-[11px] font-bold text-slate-900">Total</span>
-                  <span className="text-[15px] font-bold text-primary">
+                  <span className="flex items-center gap-1 text-[15px] font-bold text-primary">
                     {formatCurrency(voucher.total)}
+                    <ChevronRight size={14} className="text-slate-300" />
                   </span>
                 </div>
               </div>
-            </article>
+            </button>
           ))
         )}
       </div>

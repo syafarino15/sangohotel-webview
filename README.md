@@ -62,7 +62,7 @@ Bottom tab bar 4 tab (`components/nav/BottomTabBar.tsx`):
 
 Tab bar disembunyikan saat berada di alur booking (checkout/pembayaran/voucher) dan saat layanan Rent/Food dibuka. Tombol Filter dinaikkan otomatis di atas tab bar.
 
-Riwayat terisi otomatis: booking hotel dicatat saat e-voucher terbit (`status: PAID`), sedangkan sewa kendaraan dan pesanan makanan dicatat saat permintaan dikirim (`status: REQUESTED`). Pencatatan memakai kode transaksi sebagai kunci agar tidak dobel.
+Riwayat terisi otomatis: booking hotel dicatat saat e-voucher terbit (`status: PAID`), begitu juga sewa dan pesanan makanan yang kini melewati pembayaran. Pencatatan memakai kode transaksi sebagai kunci agar tidak dobel. Setiap kartu di Riwayat dan Voucher bisa diketuk untuk membuka **Detail Transaksi** (`account/TransactionDetail.tsx`) yang menampilkan QR, rincian item, metode, dan tombol unduh PDF.
 
 ## Beranda
 
@@ -81,7 +81,22 @@ Data contoh ada di `src/data/serviceCatalog.ts`:
 - `FOOD_MENUS` — 8 menu khas hotel.
 - `PROMO_BANNERS` — 3 banner promo.
 
-Layar dibuka lewat state `activeService` di store (bukan step booking, agar alur kamar tidak terganggu). Setiap layanan punya pilihan hotel, perhitungan total, dan sheet konfirmasi dengan kode permintaan (`RNT-…` / `FOD-…`). Pembayaran belum disimulasikan — di luar cakupan tahap ini.
+Layar dibuka lewat state `activeService` di `stores/useServiceStore.ts` (terpisah dari alur kamar). Alurnya kini sama seperti reservasi kamar:
+
+| Langkah | Isi |
+| --- | --- |
+| `select` | Pilih hotel, kendaraan/menu. Untuk sewa ada durasi 1–7 hari. |
+| `checkout` | **Metode pengambilan/penyerahan**: ambil sendiri atau diantar ke kamar (keduanya tanpa biaya tambahan). Bila "diantar", muncul data pengantaran: nama, WhatsApp, nomor kamar. |
+| `payment` | Sama seperti pembayaran kamar: VA BCA/Mandiri, QRIS, kartu, plus hitung mundur 15 menit. |
+| `receipt` | Bukti pembayaran lunas dengan kode `RNT-…` / `FOD-…`. |
+
+**Autofill kamar**: untuk member yang sudah punya booking hotel, data kamar diisi otomatis (`lib/stay.ts` → `pickStayForDelivery`). Booking yang tanggal menginapnya mencakup hari ini diprioritaskan; bila tidak ada, dipakai booking hotel terakhir. Guest atau member tanpa booking tetap mengisi nama, WhatsApp, dan nomor kamar secara manual.
+
+**QR klaim sewa**: bukti sewa menampilkan QR (`SANGO-RENT|…`) yang dipindai petugas saat kendaraan diambil **dan** dikembalikan. Untuk opsi ambil sendiri, bukti makanan/sewa juga menampilkan lokasi pengambilan dengan tombol "Buka Petunjuk Arah".
+
+## Bukti Pembayaran (PDF)
+
+`services/receipt.service.ts` membuat PDF A4 dengan jspdf: header charcoal bertanda emas, kode transaksi, status LUNAS, grid informasi, tabel rincian item, subtotal/pajak/diskon/total, QR (bila ada), metode pembayaran, dan footer. Tombol unduh tersedia di tiga tempat: e-voucher hotel, bukti sewa/makanan, dan Detail Transaksi di Riwayat. Nama berkas: `Sango-Bukti-{kode}.pdf`.
 
 ## Palet Warna
 
@@ -129,8 +144,9 @@ src/
 │   ├── nav/        BottomTabBar
 │   ├── account/    HistoryScreen, VoucherListScreen, AccountScreen
 │   ├── home/       HeroCarousel, ServiceGrid
-│   ├── service/    ServiceScreen, RentService, FoodService, QuantityStepper,
-│                   ServiceHotelSelect, ServiceSuccessSheet
+│   ├── service/    ServiceScreen (select→checkout→payment→receipt), RentService,
+│                   FoodService, ServiceCheckout, ServicePayment, ServiceReceipt,
+│                   FulfilmentPicker, DeliveryDetails, StaySummary, QuantityStepper
 │   ├── ui/         Button, Badge, BottomSheet, Skeleton, ToastHost, StickyActionBar
 │   ├── hotels/     HotelsScreen, HotelList, HotelCard, HotelFilterButton, CityFilterSheet
 │   ├── search/     SearchSummaryBar, HotelSearchBar, CalendarGrid, GuestCounter
@@ -142,10 +158,10 @@ src/
 │   └── common/     StepProgress
 ├── data/           hotelCatalog.ts (4 hotel Sango), serviceCatalog.ts, hotels.ts, mockData.ts
 ├── types/          booking.ts, service.ts, account.ts, bridge.ts
-├── lib/            formatters, date, pricing, validation, hotelFilter, utils
+├── lib/            formatters, date, pricing, validation, hotelFilter, stay, qrMatrix, utils
 ├── hooks/          useCountdown, useHostContext, useHostBottomOffset, useWebviewBack
-├── stores/         useBookingStore.ts, useSessionStore.ts (persist localStorage)
-└── services/       bridge.service.ts, voucher.service.ts
+├── stores/         useBookingStore.ts, useServiceStore.ts, useSessionStore.ts (persist)
+└── services/       bridge.service.ts, voucher.service.ts, transaction.service.ts, receipt.service.ts (PDF)
 ```
 
 ## Alur 6 Layar

@@ -9,6 +9,7 @@ import { VoucherDetails } from '@/components/voucher/VoucherDetails';
 import { VoucherActions } from '@/components/voucher/VoucherActions';
 import { useBookingStore } from '@/stores/useBookingStore';
 import { useSessionStore } from '@/stores/useSessionStore';
+import { buildHotelRecord } from '@/services/transaction.service';
 
 export const VoucherSection = () => {
   const booking = useBookingStore((state) => state.booking);
@@ -20,22 +21,8 @@ export const VoucherSection = () => {
     if (!booking) {
       return;
     }
-    addHistory({
-      code: booking.reference,
-      kind: 'hotel',
-      title: booking.roomName,
-      subtitle: `${booking.packageName} · ${booking.nights} malam`,
-      hotelName: booking.hotel.name,
-      total: booking.pricing.total,
-      createdAt: booking.createdAt,
-      status: 'PAID',
-      checkIn: booking.search.checkIn,
-      checkOut: booking.search.checkOut,
-      guestName: booking.guest.bookingForOther
-        ? booking.guest.guestName
-        : booking.guest.fullName,
-    });
-  }, [booking, addHistory]);
+    addHistory(buildHotelRecord(booking, payment.paidAt));
+  }, [booking, payment.paidAt, addHistory]);
 
   if (!booking) {
     return null;

@@ -16,7 +16,6 @@ import type {
   ToastMessage,
   ToastTone,
 } from '@/types/booking';
-import type { ServiceId } from '@/types/service';
 
 const REFERENCE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
@@ -47,9 +46,6 @@ interface BookingStore {
   payment: PaymentInfo;
   booking: Booking | null;
   toast: ToastMessage | null;
-  activeService: ServiceId | null;
-  openService: (service: ServiceId) => void;
-  closeService: () => void;
   selectHotel: (hotelId: string) => void;
   openRoomDetail: (roomId: string, packageId: string) => void;
   closeRoomDetail: () => void;
@@ -83,11 +79,6 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
   payment: initialPayment,
   booking: null,
   toast: null,
-  activeService: null,
-
-  openService: (activeService) => set({ activeService }),
-
-  closeService: () => set({ activeService: null }),
 
   selectHotel: (hotelId) =>
     set({

@@ -7,6 +7,7 @@ import { PaymentSection } from '@/components/PaymentSection';
 import { VoucherSection } from '@/components/VoucherSection';
 import { AccountScreen } from '@/components/account/AccountScreen';
 import { HistoryScreen } from '@/components/account/HistoryScreen';
+import { TransactionDetail } from '@/components/account/TransactionDetail';
 import { VoucherListScreen } from '@/components/account/VoucherListScreen';
 import { HotelsScreen } from '@/components/hotels/HotelsScreen';
 import { LandingScreen } from '@/components/landing/LandingScreen';
@@ -20,24 +21,37 @@ import { useHostContext } from '@/hooks/useHostContext';
 import { useWebviewBack } from '@/hooks/useWebviewBack';
 import { closeWebview } from '@/services/bridge.service';
 import { useBookingStore } from '@/stores/useBookingStore';
+import { useServiceStore } from '@/stores/useServiceStore';
 import { useSessionStore } from '@/stores/useSessionStore';
+
+const SERVICE_PREVIOUS = {
+  select: null,
+  checkout: 'select',
+  payment: 'checkout',
+  receipt: null,
+} as const;
 
 export default function Page() {
   const [mounted, setMounted] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [detailCode, setDetailCode] = useState<string | null>(null);
 
   const step = useBookingStore((state) => state.step);
   const selectedHotelId = useBookingStore((state) => state.selectedHotelId);
   const selectedRoomId = useBookingStore((state) => state.selectedRoomId);
   const goToStep = useBookingStore((state) => state.goToStep);
   const closeRoomDetail = useBookingStore((state) => state.closeRoomDetail);
-  const activeService = useBookingStore((state) => state.activeService);
-  const closeService = useBookingStore((state) => state.closeService);
   const showToast = useBookingStore((state) => state.showToast);
+
+  const activeService = useServiceStore((state) => state.activeService);
+  const serviceStep = useServiceStore((state) => state.step);
+  const serviceGoToStep = useServiceStore((state) => state.goToStep);
+  const closeService = useServiceStore((state) => state.closeService);
 
   const entered = useSessionStore((state) => state.entered);
   const member = useSessionStore((state) => state.member);
   const activeTab = useSessionStore((state) => state.activeTab);
+  const history = useSessionStore((state) => state.history);
   const enterAsGuest = useSessionStore((state) => state.enterAsGuest);
   const enterAsMember = useSessionStore((state) => state.enterAsMember);
   const login = useSessionStore((state) => state.login);
@@ -52,15 +66,24 @@ export default function Page() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [activeTab]);
+  }, [activeTab, detailCode]);
 
   const handleBack = useCallback(() => {
+    if (detailCode) {
+      setDetailCode(null);
+      return;
+    }
     if (activeTab !== 'home') {
       setTab('home');
       return;
     }
     if (activeService) {
-      closeService();
+      const previous = SERVICE_PREVIOUS[serviceStep];
+      if (previous) {
+        serviceGoToStep(previous);
+      } else {
+        closeService();
+      }
       return;
     }
     if (step === 2) {
@@ -78,7 +101,18 @@ export default function Page() {
     if (step === 5) {
       goToStep(4);
     }
-  }, [activeService, activeTab, closeService, setTab, step, closeRoomDetail, goToStep]);
+  }, [
+    activeService,
+    activeTab,
+    closeService,
+    closeRoomDetail,
+    detailCode,
+    goToStep,
+    serviceGoToStep,
+    serviceStep,
+    setTab,
+    step,
+  ]);
 
   const handleExit = useCallback(() => {
     const target = closeWebview();
@@ -87,14 +121,28 @@ export default function Page() {
     }
   }, [showToast]);
 
+  const atServiceRoot = Boolean(activeService) && serviceStep === 'select';
+  const atHotelRoot = step === 1 || step === 6;
+
   useWebviewBack({
     enabled: isEmbedded && entered,
-    atRoot: activeTab === 'home' && !activeService && (step === 1 || step === 6),
+    atRoot:
+      !detailCode &&
+      activeTab === 'home' &&
+      (atServiceRoot || (!activeService && atHotelRoot)),
     onBack: handleBack,
     onExit: handleExit,
   });
 
-  const showTabBar = entered && !activeService && (activeTab !== 'home' || step === 1);
+  const showTabBar =
+    entered &&
+    !activeService &&
+    !detailCode &&
+    (activeTab !== 'home' || step === 1);
+
+  const detailRecord = detailCode
+    ? history.find((record) => record.code === detailCode) ?? null
+    : null;
 
   return (
     <div
@@ -130,8 +178,20 @@ export default function Page() {
             </>
           ) : null}
 
-          {activeTab === 'history' ? <HistoryScreen /> : null}
-          {activeTab === 'vouchers' ? <VoucherListScreen /> : null}
+          {activeTab === 'history' ? (
+            detailRecord ? (
+              <TransactionDetail record={detailRecord} onBack={() => setDetailCode(null)} />
+            ) : (
+              <HistoryScreen onOpen={setDetailCode} />
+            )
+          ) : null}
+          {activeTab === 'vouchers' ? (
+            detailRecord ? (
+              <TransactionDetail record={detailRecord} onBack={() => setDetailCode(null)} />
+            ) : (
+              <VoucherListScreen onOpen={setDetailCode} />
+            )
+          ) : null}
           {activeTab === 'account' ? <AccountScreen /> : null}
 
           {showTabBar ? <BottomTabBar active={activeTab} onSelect={setTab} /> : null}

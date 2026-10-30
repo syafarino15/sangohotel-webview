@@ -3,17 +3,16 @@
 import { useMemo, useState } from 'react';
 import { Bike, Car, CheckCircle2, Gauge } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { StickyActionBar } from '@/components/ui/StickyActionBar';
 import { HOTELS } from '@/data/hotels';
 import { RENT_VEHICLES } from '@/data/serviceCatalog';
 import { formatCurrency } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/Button';
-import { StickyActionBar } from '@/components/ui/StickyActionBar';
-import { useSessionStore } from '@/stores/useSessionStore';
-import type { RentCategory, ServiceOrder } from '@/types/service';
+import { useServiceStore } from '@/stores/useServiceStore';
+import type { RentCategory } from '@/types/service';
 import { QuantityStepper } from './QuantityStepper';
 import { ServiceHotelSelect } from './ServiceHotelSelect';
-import { ServiceSuccessSheet } from './ServiceSuccessSheet';
 
 const CATEGORY_ICONS: Record<RentCategory, LucideIcon> = {
   Bike: Bike,
@@ -28,50 +27,32 @@ const FILTERS: Array<{ id: RentCategory | 'all'; label: string }> = [
   { id: 'Car', label: 'Mobil' },
 ];
 
-const makeCode = (): string =>
-  `RNT-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-
 export const RentService = () => {
-  const [hotelId, setHotelId] = useState(HOTELS[0].hotel.id);
+  const draft = useServiceStore((state) => state.draft);
+  const setHotel = useServiceStore((state) => state.setHotel);
+  const setLines = useServiceStore((state) => state.setLines);
+  const setDays = useServiceStore((state) => state.setDays);
+  const startCheckout = useServiceStore((state) => state.startCheckout);
+
   const [filter, setFilter] = useState<RentCategory | 'all'>('all');
-  const [vehicleId, setVehicleId] = useState<string | null>(null);
-  const [days, setDays] = useState(1);
-  const [order, setOrder] = useState<ServiceOrder | null>(null);
-  const addHistory = useSessionStore((state) => state.addHistory);
 
   const vehicles = useMemo(
     () => (filter === 'all' ? RENT_VEHICLES : RENT_VEHICLES.filter((v) => v.category === filter)),
     [filter]
   );
-  const hotel = HOTELS.find(({ hotel }) => hotel.id === hotelId)?.hotel ?? HOTELS[0].hotel;
+
+  const hotelId = draft?.hotelId || HOTELS[0].hotel.id;
+  const days = draft?.days ?? 1;
+  const vehicleId = draft?.lines[0]?.id ?? null;
   const selected = RENT_VEHICLES.find((vehicle) => vehicle.id === vehicleId) ?? null;
   const total = selected ? selected.pricePerDay * days : 0;
 
-  const handleSubmit = () => {
-    if (!selected) {
+  const handleSelectVehicle = (id: string) => {
+    const vehicle = RENT_VEHICLES.find((item) => item.id === id);
+    if (!vehicle) {
       return;
     }
-    const code = makeCode();
-    setOrder({
-      code,
-      service: 'rent',
-      hotelId: hotel.id,
-      hotelName: hotel.name,
-      itemLabel: selected.name,
-      quantity: days,
-      unit: 'Durasi (hari)',
-      total,
-    });
-    addHistory({
-      code,
-      kind: 'rent',
-      title: selected.name,
-      subtitle: `${days} hari · ${hotel.name}`,
-      hotelName: hotel.name,
-      total,
-      createdAt: new Date().toISOString(),
-      status: 'REQUESTED',
-    });
+    setLines([{ id: vehicle.id, label: vehicle.name, qty: 1, unitPrice: vehicle.pricePerDay }]);
   };
 
   return (
@@ -79,7 +60,7 @@ export const RentService = () => {
       <div className="flex-1 space-y-2.5 px-3 pb-4 pt-2.5">
         <ServiceHotelSelect
           value={hotelId}
-          onChange={(id) => setHotelId(id)}
+          onChange={setHotel}
           label="Lokasi pengambilan kendaraan"
         />
 
@@ -110,7 +91,7 @@ export const RentService = () => {
               <button
                 key={vehicle.id}
                 type="button"
-                onClick={() => setVehicleId(vehicle.id)}
+                onClick={() => handleSelectVehicle(vehicle.id)}
                 aria-pressed={active}
                 className={cn(
                   'flex w-full items-start gap-2.5 rounded-2xl border p-3 text-left shadow-card transition-colors',
@@ -153,13 +134,17 @@ export const RentService = () => {
             </p>
             <p className="text-[17px] font-bold text-primary">{formatCurrency(total)}</p>
           </div>
-          <Button variant="action" size="md" disabled={!selected} onClick={handleSubmit}>
-            Kirim Permintaan
+          <Button
+            variant="action"
+            size="md"
+            disabled={!selected}
+            onClick={startCheckout}
+            className="shrink-0"
+          >
+            Lanjut Pesan
           </Button>
         </div>
       </StickyActionBar>
-
-      <ServiceSuccessSheet order={order} onClose={() => setOrder(null)} />
     </>
   );
 };

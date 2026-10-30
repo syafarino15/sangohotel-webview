@@ -4,9 +4,15 @@ import { cn } from '@/lib/utils';
 interface PaymentCountdownBannerProps {
   label: string;
   expired: boolean;
+  /** Kata benda yang diamankan, mis. "kamar Anda" atau "pesanan Anda". */
+  subject?: string;
 }
 
-export const PaymentCountdownBanner = ({ label, expired }: PaymentCountdownBannerProps) => (
+export const PaymentCountdownBanner = ({
+  label,
+  expired,
+  subject = 'kamar Anda',
+}: PaymentCountdownBannerProps) => (
   <div
     className={cn(
       'flex items-center gap-2 px-3.5 py-2.5 text-white',
@@ -24,7 +30,7 @@ export const PaymentCountdownBanner = ({ label, expired }: PaymentCountdownBanne
       ) : (
         <>
           Selesaikan pembayaran dalam{' '}
-          <span className="font-bold tabular-nums">{label}</span> untuk mengamankan kamar Anda.
+          <span className="font-bold tabular-nums">{label}</span> untuk mengamankan {subject}.
         </>
       )}
     </p>

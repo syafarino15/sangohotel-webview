@@ -7,22 +7,29 @@ import { Button } from '@/components/ui/Button';
 interface PaymentExpiredDialogProps {
   open: boolean;
   onRestart: () => void;
+  title?: string;
+  description?: string;
+  actionLabel?: string;
 }
 
-export const PaymentExpiredDialog = ({ open, onRestart }: PaymentExpiredDialogProps) => (
-  <BottomSheet open={open} onClose={onRestart} title="Waktu Pemesanan Habis" hideClose>
+export const PaymentExpiredDialog = ({
+  open,
+  onRestart,
+  title = 'Waktu Pemesanan Habis',
+  description = 'Stok kamar dilepas kembali. Silakan pilih kamar dan lakukan pembayaran ulang.',
+  actionLabel = 'Kembali ke Katalog Kamar',
+}: PaymentExpiredDialogProps) => (
+  <BottomSheet open={open} onClose={onRestart} title={title} hideClose>
     <div className="flex flex-col items-center pb-2 pt-1 text-center">
       <span className="flex h-16 w-16 items-center justify-center rounded-full bg-action-soft text-action">
         <TimerOff size={30} />
       </span>
       <p className="mt-3 text-[13px] font-semibold text-slate-900">
-        Hold kamar 15 menit telah berakhir
+        Batas waktu pembayaran 15 menit telah berakhir
       </p>
-      <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
-        Stok kamar dilepas kembali. Silakan pilih kamar dan lakukan pembayaran ulang.
-      </p>
+      <p className="mt-1 text-[12px] leading-relaxed text-slate-500">{description}</p>
       <Button variant="action" size="lg" fullWidth className="mt-4" onClick={onRestart}>
-        Kembali ke Katalog Kamar
+        {actionLabel}
       </Button>
     </div>
   </BottomSheet>

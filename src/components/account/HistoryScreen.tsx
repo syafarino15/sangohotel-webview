@@ -1,6 +1,6 @@
 'use client';
 
-import { BedDouble, Car, ReceiptText, UtensilsCrossed } from 'lucide-react';
+import { BedDouble, Car, ChevronRight, ReceiptText, UtensilsCrossed } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { formatCurrency, formatDateShort } from '@/lib/formatters';
@@ -14,7 +14,11 @@ const KIND_META: Record<HistoryKind, { label: string; icon: LucideIcon }> = {
   food: { label: 'Food', icon: UtensilsCrossed },
 };
 
-export const HistoryScreen = () => {
+interface HistoryScreenProps {
+  onOpen: (code: string) => void;
+}
+
+export const HistoryScreen = ({ onOpen }: HistoryScreenProps) => {
   const history = useSessionStore((state) => state.history);
 
   return (
@@ -41,9 +45,11 @@ export const HistoryScreen = () => {
             const paid = record.status === 'PAID';
 
             return (
-              <article
+              <button
                 key={record.code}
-                className="rounded-2xl border border-slate-100 bg-white p-3 shadow-card"
+                type="button"
+                onClick={() => onOpen(record.code)}
+                className="w-full rounded-2xl border border-slate-100 bg-white p-3 text-left shadow-card active:bg-slate-50"
               >
                 <div className="flex items-start gap-2.5">
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-surface text-primary">
@@ -73,13 +79,14 @@ export const HistoryScreen = () => {
                       <span className="text-[10px] font-semibold text-slate-400">
                         {meta.label} · {formatDateShort(record.createdAt.slice(0, 10))}
                       </span>
-                      <span className="text-[13px] font-bold text-primary">
+                      <span className="flex items-center gap-1 text-[13px] font-bold text-primary">
                         {formatCurrency(record.total)}
+                        <ChevronRight size={14} className="text-slate-300" />
                       </span>
                     </div>
                   </div>
                 </div>
-              </article>
+              </button>
             );
           })
         )}

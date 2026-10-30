@@ -1,18 +1,17 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Coffee, IceCream, Salad, UtensilsCrossed } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { StickyActionBar } from '@/components/ui/StickyActionBar';
-import { useSessionStore } from '@/stores/useSessionStore';
 import { HOTELS } from '@/data/hotels';
 import { FOOD_MENUS } from '@/data/serviceCatalog';
 import { formatCurrency } from '@/lib/formatters';
-import type { FoodCategory, ServiceOrder } from '@/types/service';
+import { useServiceStore } from '@/stores/useServiceStore';
+import type { FoodCategory } from '@/types/service';
 import { QuantityStepper } from './QuantityStepper';
 import { ServiceHotelSelect } from './ServiceHotelSelect';
-import { ServiceSuccessSheet } from './ServiceSuccessSheet';
 
 const CATEGORY_ICONS: Record<FoodCategory, LucideIcon> = {
   Main: UtensilsCrossed,
@@ -21,15 +20,29 @@ const CATEGORY_ICONS: Record<FoodCategory, LucideIcon> = {
   Drink: Coffee,
 };
 
-const makeCode = (): string => `FOD-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-
 export const FoodService = () => {
-  const [hotelId, setHotelId] = useState(HOTELS[0].hotel.id);
-  const [quantities, setQuantities] = useState<Record<string, number>>({});
-  const [order, setOrder] = useState<ServiceOrder | null>(null);
-  const addHistory = useSessionStore((state) => state.addHistory);
+  const draft = useServiceStore((state) => state.draft);
+  const setHotel = useServiceStore((state) => state.setHotel);
+  const setLines = useServiceStore((state) => state.setLines);
+  const startCheckout = useServiceStore((state) => state.startCheckout);
 
-  const hotel = HOTELS.find(({ hotel }) => hotel.id === hotelId)?.hotel ?? HOTELS[0].hotel;
+  const quantities = useMemo(() => {
+    const map: Record<string, number> = {};
+    draft?.lines.forEach((line) => {
+      map[line.id] = line.qty;
+    });
+    return map;
+  }, [draft?.lines]);
+
+  useEffect(() => {
+    if (draft && !draft.hotelId) {
+      setHotel(HOTELS[0].hotel.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft?.hotelId]);
+
+  const hotelId = draft?.hotelId || HOTELS[0].hotel.id;
+
   const { itemCount, total } = useMemo(
     () =>
       FOOD_MENUS.reduce(
@@ -45,44 +58,28 @@ export const FoodService = () => {
     [quantities]
   );
 
-  const handleSubmit = () => {
-    if (itemCount === 0) {
+  const handleQuantity = (itemId: string, next: number) => {
+    const menu = FOOD_MENUS.find((item) => item.id === itemId);
+    if (!menu) {
       return;
     }
-    const chosen = FOOD_MENUS.filter((item) => (quantities[item.id] ?? 0) > 0);
-    const code = makeCode();
-    const itemLabel = chosen.length === 1 ? chosen[0].name : `${chosen.length} jenis menu`;
+    const merged = FOOD_MENUS.filter((item) => {
+      const qty = item.id === itemId ? next : quantities[item.id] ?? 0;
+      return qty > 0;
+    }).map((item) => ({
+      id: item.id,
+      label: item.name,
+      qty: item.id === itemId ? next : quantities[item.id] ?? 0,
+      unitPrice: item.price,
+    }));
 
-    setOrder({
-      code,
-      service: 'food',
-      hotelId: hotel.id,
-      hotelName: hotel.name,
-      itemLabel,
-      quantity: itemCount,
-      unit: 'Jumlah item',
-      total,
-    });
-    addHistory({
-      code,
-      kind: 'food',
-      title: itemLabel,
-      subtitle: `${itemCount} item · ${hotel.name}`,
-      hotelName: hotel.name,
-      total,
-      createdAt: new Date().toISOString(),
-      status: 'REQUESTED',
-    });
+    setLines(merged);
   };
 
   return (
     <>
       <div className="flex-1 space-y-2.5 px-3 pb-4 pt-2.5">
-        <ServiceHotelSelect
-          value={hotelId}
-          onChange={(id) => setHotelId(id)}
-          label="Dapur hotel"
-        />
+        <ServiceHotelSelect value={hotelId} onChange={setHotel} label="Dapur hotel" />
 
         <div className="space-y-2">
           {FOOD_MENUS.map((item) => {
@@ -110,9 +107,7 @@ export const FoodService = () => {
                   min={0}
                   max={10}
                   label={item.name}
-                  onChange={(next) =>
-                    setQuantities((current) => ({ ...current, [item.id]: next }))
-                  }
+                  onChange={(next) => handleQuantity(item.id, next)}
                 />
               </section>
             );
@@ -120,7 +115,7 @@ export const FoodService = () => {
         </div>
 
         <p className="pb-1 text-center text-[10px] leading-relaxed text-slate-400">
-          Pesanan diantar ke kamar atau lobby hotel. Pembayaran dilakukan langsung ke hotel.
+          Pesanan dapat diambil di restoran atau diantar ke kamar. Pilih saat pemesanan.
         </p>
       </div>
 
@@ -132,13 +127,17 @@ export const FoodService = () => {
             </p>
             <p className="text-[17px] font-bold text-primary">{formatCurrency(total)}</p>
           </div>
-          <Button variant="action" size="md" disabled={itemCount === 0} onClick={handleSubmit}>
-            Kirim Pesanan
+          <Button
+            variant="action"
+            size="md"
+            disabled={itemCount === 0}
+            onClick={startCheckout}
+            className="shrink-0"
+          >
+            Lanjut Pesan
           </Button>
         </div>
       </StickyActionBar>
-
-      <ServiceSuccessSheet order={order} onClose={() => setOrder(null)} />
     </>
   );
 };

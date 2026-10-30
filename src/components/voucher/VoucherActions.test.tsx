@@ -75,11 +75,19 @@ describe('VoucherActions - tombol WhatsApp', () => {
   it('tidak menulari tombol lain dengan warna hijau', () => {
     renderActions();
 
-    expect(screen.getByRole('button', { name: /Download Ringkasan/i }).className).not.toContain(
-      'bg-whatsapp'
-    );
+    expect(
+      screen.getByRole('button', { name: /Download Bukti Pembayaran/i }).className
+    ).not.toContain('bg-whatsapp');
     expect(screen.getByRole('button', { name: /Cari Hotel Lain/i }).className).not.toContain(
       'bg-whatsapp'
     );
+  });
+
+  it('menyediakan tombol unduh bukti pembayaran PDF', () => {
+    renderActions();
+
+    expect(
+      screen.getByRole('button', { name: /Download Bukti Pembayaran \(PDF\)/i })
+    ).toBeTruthy();
   });
 });
