@@ -40,7 +40,7 @@ Harga, ketersediaan, dan tipe kamar adalah **data contoh** untuk demo.
 
 ## Landing & Sesi
 
-Saat pertama dibuka, webview menampilkan **landing page 3 slide fullscreen** (`components/landing/LandingScreen.tsx`) dengan tombol "Lewati". Di slide terakhir pengguna memilih:
+Saat pertama dibuka, webview menampilkan **landing page 3 slide fullscreen** (`components/landing/LandingScreen.tsx`). Slider berbasis state (bukan scroll): bisa digeser (swipe), diketuk indikatornya, atau dipindah dengan tombol panah keyboard. Ada tombol "Lewati" di kanan atas. Di slide terakhir pengguna memilih:
 
 - **Masuk sebagai Member** — sheet berisi nama, email, WhatsApp (`MemberLoginSheet`). Data dipakai untuk mengisi otomatis formulir pemesanan.
 - **Lanjut sebagai Guest** — langsung masuk beranda; data pemesan diisi manual.
@@ -48,6 +48,8 @@ Saat pertama dibuka, webview menampilkan **landing page 3 slide fullscreen** (`c
 Sesi disimpan di `localStorage` dengan kunci `sango-session` (`stores/useSessionStore.ts`, `persist` + `partialize`). Yang disimpan hanya `entered`, `member`, dan `history`; tab aktif tidak disimpan agar reload selalu kembali ke Beranda. Menghapus data situs akan mengembalikan ke landing page.
 
 ## Navigasi Aplikasi
+
+Header beranda menampilkan **logo Sango** (bukan tombol kembali); tombol kembali hanya muncul di halaman dalam (daftar kamar, pemesanan, pembayaran, layanan).
 
 Bottom tab bar 4 tab (`components/nav/BottomTabBar.tsx`):
 
@@ -98,6 +100,7 @@ Catatan:
 - Teks di atas tombol emas memakai `text-sango-ink` (bukan putih) agar kontras terbaca.
 - Skala `slate` di-remap ke netral hangat (`stone`) supaya tidak ada rona biru.
 - Font mengikuti website Sango: **DM Sans** lewat `next/font`.
+- Foto landing page, banner promo, dan logo diambil langsung dari aset HD `sangohotelmanagement.com`. Host itu sudah didaftarkan di `images.remotePatterns` (`next.config.mjs`) bersama `images.unsplash.com`; menambah host gambar baru wajib didaftarkan dulu atau build akan gagal.
 - `themeColor` browser ada di `src/app/layout.tsx` (`#100B07`).
 
 ## Deploy (Netlify)

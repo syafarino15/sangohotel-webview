@@ -3,6 +3,9 @@ import type { FoodMenuItem, PromoBanner, RentVehicle } from '@/types/service';
 const image = (id: string): string =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=900&q=75`;
 
+const SANGO_PHOTOS =
+  'https://sangohotelmanagement.com/wp-content/themes/shm-theme/assets/photos';
+
 /** Data contoh layanan tambahan Sango (harga & ketersediaan fiktif). */
 export const RENT_VEHICLES: RentVehicle[] = [
   {
@@ -121,7 +124,7 @@ export const PROMO_BANNERS: PromoBanner[] = [
     title: 'Harga terbaik hanya di sini',
     description: 'Pesan langsung ke Sango, tanpa biaya perantara.',
     ctaLabel: 'Cari Hotel',
-    image: image('photo-1584132967334-10e028bd69f7'),
+    image: `${SANGO_PHOTOS}/hotel-mpv.jpg`,
     action: 'booking',
   },
   {
@@ -130,7 +133,7 @@ export const PROMO_BANNERS: PromoBanner[] = [
     title: 'Menu khas hotel, antar ke kamar',
     description: 'Pesan makanan favorit dari dapur hotel.',
     ctaLabel: 'Pesan Makanan',
-    image: image('photo-1551882547-ff40c63fe5fa'),
+    image: `${SANGO_PHOTOS}/dining-central-park-02.jpg`,
     action: 'food',
   },
   {
@@ -139,7 +142,7 @@ export const PROMO_BANNERS: PromoBanner[] = [
     title: 'Sewa sepeda, motor, atau mobil',
     description: 'Jelajahi kota dengan kendaraan dari hotel.',
     ctaLabel: 'Sewa Kendaraan',
-    image: image('photo-1542314831-068cd1dbfeeb'),
+    image: `${SANGO_PHOTOS}/hotel-manhattan.jpg`,
     action: 'rent',
   },
 ];

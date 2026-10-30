@@ -11,7 +11,6 @@ import { HotelList, HotelListSkeleton } from '@/components/hotels/HotelList';
 import { HotelFilterButton } from '@/components/hotels/HotelFilterButton';
 import { CityFilterSheet } from '@/components/hotels/CityFilterSheet';
 import { useBookingStore } from '@/stores/useBookingStore';
-import { closeWebview } from '@/services/bridge.service';
 import { HOTELS } from '@/data/hotels';
 import { PROMO_BANNERS } from '@/data/serviceCatalog';
 import { buildCityOptions, filterHotels } from '@/lib/hotelFilter';
@@ -52,23 +51,13 @@ export const HotelsScreen = () => {
     openService(banner.action);
   };
 
-  const handleBack = () => {
-    const target = closeWebview();
-    showToast(
-      target === 'browser'
-        ? 'Pratinjau browser: event close_webview dikirim ke parent.'
-        : 'Menutup halaman Sango Hotels.',
-      'info'
-    );
-  };
-
   return (
     <div className="flex flex-1 flex-col bg-canvas">
       <div className="sticky top-0 z-30">
         <Header
           title="Sango Hotels"
           subtitle="Direct booking Sango Hotel Management"
-          onBack={handleBack}
+          showLogo
         />
         <HotelSearchBar value={hotelQuery} onChange={setHotelQuery} />
         <SearchSummaryBar search={search} onOpen={() => setPickerOpen(true)} />

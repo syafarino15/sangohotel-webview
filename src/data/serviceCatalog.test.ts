@@ -20,14 +20,15 @@ describe('katalog layanan Sango', () => {
     expect(categories).toEqual(new Set(['Bike', 'Motorcycle', 'Car']));
   });
 
-  it('mengarahkan banner ke aksi yang valid dan memakai gambar yang diizinkan', () => {
+  it('mengarahkan banner ke aksi yang valid dan memakai host gambar yang diizinkan', () => {
     const validActions = ['booking', 'rent', 'food'];
+    const allowedHosts = ['https://images.unsplash.com/', 'https://sangohotelmanagement.com/'];
 
     expect(PROMO_BANNERS).toHaveLength(3);
     expect(PROMO_BANNERS.every((banner) => validActions.includes(banner.action))).toBe(true);
     expect(
       PROMO_BANNERS.every((banner) =>
-        banner.image.startsWith('https://images.unsplash.com/')
+        allowedHosts.some((host) => banner.image.startsWith(host))
       )
     ).toBe(true);
   });

@@ -1,13 +1,12 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 
-const image = (id: string): string =>
-  `https://images.unsplash.com/${id}?auto=format&fit=crop&w=900&q=75`;
+const SANGO = 'https://sangohotelmanagement.com/wp-content/themes/shm-theme/assets/photos';
 
 const SLIDES = [
   {
@@ -16,7 +15,7 @@ const SLIDES = [
     title: 'Selamat datang di Sango',
     description:
       'Empat hotel pilihan di Semarang dan Jakarta. Satu aplikasi untuk menginap, menyewa kendaraan, dan memesan makanan.',
-    image: image('photo-1566073771259-6a8506099945'),
+    image: `${SANGO}/hotel-manhattan.jpg`,
   },
   {
     id: 'booking',
@@ -24,7 +23,7 @@ const SLIDES = [
     title: 'Pesan langsung, harga terbaik',
     description:
       'Pilih kamar, bayar, lalu terima e-voucher. Tanpa biaya perantara dan tanpa pindah aplikasi.',
-    image: image('photo-1584132967334-10e028bd69f7'),
+    image: `${SANGO}/hotel-sunlake.jpg`,
   },
   {
     id: 'services',
@@ -32,9 +31,11 @@ const SLIDES = [
     title: 'Semua kebutuhan menginap',
     description:
       'Sewa sepeda, motor, atau mobil hotel. Pesan makanan khas dapur hotel langsung ke kamar.',
-    image: image('photo-1542314831-068cd1dbfeeb'),
+    image: `${SANGO}/dining-havana.jpg`,
   },
 ];
+
+const SWIPE_THRESHOLD = 48;
 
 interface LandingScreenProps {
   onGuest: () => void;
@@ -43,23 +44,42 @@ interface LandingScreenProps {
 
 export const LandingScreen = ({ onGuest, onMember }: LandingScreenProps) => {
   const [activeIndex, setActiveIndex] = useState(0);
-  const trackRef = useRef<HTMLDivElement | null>(null);
+  const startXRef = useRef<number | null>(null);
 
   const goToSlide = (index: number) => {
-    const track = trackRef.current;
-    if (!track) {
-      return;
-    }
-    track.scrollTo({ top: track.clientHeight * index, behavior: 'smooth' });
+    setActiveIndex(Math.min(SLIDES.length - 1, Math.max(0, index)));
   };
 
-  const handleScroll = () => {
-    const track = trackRef.current;
-    if (!track) {
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'ArrowRight') {
+        setActiveIndex((current) => Math.min(SLIDES.length - 1, current + 1));
+      }
+      if (event.key === 'ArrowLeft') {
+        setActiveIndex((current) => Math.max(0, current - 1));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    startXRef.current = event.clientX;
+  };
+
+  const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    const startX = startXRef.current;
+    startXRef.current = null;
+    if (startX === null) {
       return;
     }
-    const nextIndex = Math.round(track.scrollTop / track.clientHeight);
-    setActiveIndex(Math.min(SLIDES.length - 1, Math.max(0, nextIndex)));
+
+    const delta = event.clientX - startX;
+    if (Math.abs(delta) < SWIPE_THRESHOLD) {
+      return;
+    }
+    goToSlide(activeIndex + (delta < 0 ? 1 : -1));
   };
 
   const isLastSlide = activeIndex === SLIDES.length - 1;
@@ -67,14 +87,22 @@ export const LandingScreen = ({ onGuest, onMember }: LandingScreenProps) => {
   return (
     <section className="fixed inset-0 z-50 mx-auto flex w-full max-w-[480px] flex-col overflow-hidden bg-sango-ink">
       <div
-        ref={trackRef}
-        onScroll={handleScroll}
-        className="no-scrollbar flex h-full snap-y snap-mandatory flex-col overflow-y-auto"
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        className="relative h-full w-full touch-pan-y select-none"
       >
         {SLIDES.map((slide, index) => (
           <article
             key={slide.id}
-            className="relative flex h-full w-full shrink-0 snap-start flex-col justify-end px-5 pb-28 pt-24"
+            aria-hidden={index !== activeIndex}
+            className={cn(
+              'absolute inset-0 flex flex-col justify-end px-5 pb-24 pt-24 transition-all duration-500 ease-out',
+              index === activeIndex
+                ? 'translate-x-0 opacity-100'
+                : index < activeIndex
+                  ? '-translate-x-full opacity-0'
+                  : 'translate-x-full opacity-0'
+            )}
           >
             <Image
               src={slide.image}
@@ -84,7 +112,7 @@ export const LandingScreen = ({ onGuest, onMember }: LandingScreenProps) => {
               priority={index === 0}
               className="object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-sango-ink via-sango-ink/70 to-sango-ink/25" />
+            <div className="absolute inset-0 bg-gradient-to-t from-sango-ink via-sango-ink/55 to-sango-ink/10" />
 
             <div className="relative">
               <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-sango-gold">
@@ -97,7 +125,7 @@ export const LandingScreen = ({ onGuest, onMember }: LandingScreenProps) => {
                 {slide.description}
               </p>
 
-              {index === SLIDES.length - 1 ? (
+              {isLastSlide && index === activeIndex ? (
                 <div className="mt-5 space-y-2">
                   <Button fullWidth size="lg" onClick={onMember}>
                     Masuk sebagai Member <ArrowRight size={16} />
@@ -127,15 +155,23 @@ export const LandingScreen = ({ onGuest, onMember }: LandingScreenProps) => {
         Lewati
       </button>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom,0px)+16px)] flex items-center justify-center gap-1.5">
+      <div className="absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom,0px)+16px)] flex items-center justify-center gap-1.5">
         {SLIDES.map((slide, index) => (
-          <span
+          <button
             key={`dot-${slide.id}`}
-            className={cn(
-              'h-1.5 rounded-full transition-all',
-              index === activeIndex ? 'w-5 bg-sango-gold' : 'w-1.5 bg-white/40'
-            )}
-          />
+            type="button"
+            onClick={() => goToSlide(index)}
+            aria-label={`Slide ${index + 1}`}
+            aria-current={index === activeIndex}
+            className="flex h-9 w-6 items-center justify-center"
+          >
+            <span
+              className={cn(
+                'h-1.5 rounded-full transition-all',
+                index === activeIndex ? 'w-5 bg-sango-gold' : 'w-1.5 bg-white/40'
+              )}
+            />
+          </button>
         ))}
       </div>
     </section>
