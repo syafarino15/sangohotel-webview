@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Download, MessageCircle, Search, X } from 'lucide-react';
+import { Download, Home, MessageCircle, Search } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { closeWebview } from '@/services/bridge.service';
 import { buildWhatsAppUrl } from '@/services/voucher.service';
 import { buildHotelRecord } from '@/services/transaction.service';
 import { downloadReceiptPdf } from '@/services/receipt.service';
@@ -13,6 +12,7 @@ import type { Booking } from '@/types/booking';
 export const VoucherActions = ({ booking }: { booking: Booking }) => {
   const showToast = useBookingStore((state) => state.showToast);
   const startNewBooking = useBookingStore((state) => state.startNewBooking);
+  const goToStep = useBookingStore((state) => state.goToStep);
   const payment = useBookingStore((state) => state.payment);
   const [downloading, setDownloading] = useState(false);
 
@@ -38,11 +38,9 @@ export const VoucherActions = ({ booking }: { booking: Booking }) => {
     showToast('Kembali ke daftar hotel untuk pemesanan baru.', 'info');
   };
 
-  const handleClose = () => {
-    const target = closeWebview();
-    if (target === 'browser') {
-      showToast('Pratinjau browser: event close_webview dikirim ke parent.', 'info');
-    }
+  const handleGoHome = () => {
+    goToStep(1);
+    showToast('Kembali ke halaman utama.', 'info');
   };
 
   return (
@@ -62,8 +60,8 @@ export const VoucherActions = ({ booking }: { booking: Booking }) => {
       <Button variant="primary" size="lg" fullWidth onClick={handleSearchAgain}>
         <Search size={17} /> Cari Hotel Lain
       </Button>
-      <Button variant="ghost" size="lg" fullWidth onClick={handleClose}>
-        <X size={17} /> Tutup Halaman
+      <Button variant="ghost" size="lg" fullWidth onClick={handleGoHome}>
+        <Home size={17} /> Kembali ke Halaman Utama
       </Button>
     </div>
   );

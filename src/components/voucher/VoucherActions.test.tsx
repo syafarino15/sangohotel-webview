@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { HOTELS } from '@/data/hotelCatalog';
+import { useBookingStore } from '@/stores/useBookingStore';
 import type { Booking } from '@/types/booking';
 import { VoucherActions } from './VoucherActions';
 
@@ -89,5 +90,32 @@ describe('VoucherActions - tombol WhatsApp', () => {
     expect(
       screen.getByRole('button', { name: /Download Bukti Pembayaran \(PDF\)/i })
     ).toBeTruthy();
+  });
+
+  it('mengganti tombol tutup halaman menjadi kembali ke halaman utama', () => {
+    renderActions();
+
+    expect(screen.queryByRole('button', { name: /Tutup Halaman/i })).toBeNull();
+    expect(
+      screen.getByRole('button', { name: /Kembali ke Halaman Utama/i })
+    ).toBeTruthy();
+  });
+
+  it('menaruh tombol kembali ke halaman utama setelah cari hotel lain', () => {
+    renderActions();
+
+    const labels = screen.getAllByRole('button').map((button) => button.textContent?.trim() ?? '');
+    const searchIndex = labels.findIndex((label) => /Cari Hotel Lain/i.test(label));
+    const homeIndex = labels.findIndex((label) => /Kembali ke Halaman Utama/i.test(label));
+
+    expect(searchIndex).toBeGreaterThanOrEqual(0);
+    expect(homeIndex).toBe(searchIndex + 1);
+  });
+
+  it('tombol kembali ke halaman utama memindahkan alur ke step 1', () => {
+    renderActions();
+    fireEvent.click(screen.getByRole('button', { name: /Kembali ke Halaman Utama/i }));
+
+    expect(useBookingStore.getState().step).toBe(1);
   });
 });
