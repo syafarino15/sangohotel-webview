@@ -36,8 +36,10 @@ export default function Page() {
   const showToast = useBookingStore((state) => state.showToast);
 
   const entered = useSessionStore((state) => state.entered);
+  const member = useSessionStore((state) => state.member);
   const activeTab = useSessionStore((state) => state.activeTab);
   const enterAsGuest = useSessionStore((state) => state.enterAsGuest);
+  const enterAsMember = useSessionStore((state) => state.enterAsMember);
   const login = useSessionStore((state) => state.login);
   const setTab = useSessionStore((state) => state.setTab);
 
@@ -106,7 +108,11 @@ export default function Page() {
       ) : null}
 
       {mounted && !entered ? (
-        <LandingScreen onGuest={enterAsGuest} onMember={() => setLoginOpen(true)} />
+        <LandingScreen
+          onGuest={enterAsGuest}
+          onMember={member ? enterAsMember : () => setLoginOpen(true)}
+          memberName={member?.fullName ?? null}
+        />
       ) : null}
 
       {mounted && entered ? (

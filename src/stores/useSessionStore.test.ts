@@ -45,7 +45,7 @@ describe('useSessionStore', () => {
     });
   });
 
-  it('logout menghapus profil tetapi tetap di dalam aplikasi', () => {
+  it('logout menghapus profil dan kembali ke landing page', () => {
     useSessionStore
       .getState()
       .login({ fullName: 'Rian Kusuma', email: 'rian@example.com', phone: '081234567890' });
@@ -53,7 +53,25 @@ describe('useSessionStore', () => {
     useSessionStore.getState().logout();
 
     expect(useSessionStore.getState().member).toBeNull();
+    expect(useSessionStore.getState().entered).toBe(false);
+  });
+
+  it('masuk sebagai member memakai profil tersimpan tanpa mengisi form lagi', () => {
+    useSessionStore
+      .getState()
+      .login({ fullName: 'Rian Kusuma', email: 'rian@example.com', phone: '081234567890' });
+    useSessionStore.setState({ entered: false });
+
+    useSessionStore.getState().enterAsMember();
+
     expect(useSessionStore.getState().entered).toBe(true);
+    expect(useSessionStore.getState().member?.fullName).toBe('Rian Kusuma');
+  });
+
+  it('enterAsMember tidak berbuat apa-apa tanpa profil tersimpan', () => {
+    useSessionStore.getState().enterAsMember();
+
+    expect(useSessionStore.getState().entered).toBe(false);
   });
 
   it('mencatat riwayat sekali untuk kode yang sama', () => {

@@ -10,6 +10,7 @@ interface SessionStore {
   history: HistoryRecord[];
   activeTab: AppTab;
   enterAsGuest: () => void;
+  enterAsMember: () => void;
   login: (member: MemberProfile) => void;
   logout: () => void;
   setTab: (tab: AppTab) => void;
@@ -17,9 +18,14 @@ interface SessionStore {
   resetSession: () => void;
 }
 
+interface PersistedSession {
+  member: MemberProfile | null;
+  history: HistoryRecord[];
+}
+
 export const useSessionStore = create<SessionStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       entered: false,
       member: null,
       history: [],
@@ -27,9 +33,16 @@ export const useSessionStore = create<SessionStore>()(
 
       enterAsGuest: () => set({ entered: true, member: null, activeTab: 'home' }),
 
+      enterAsMember: () => {
+        const member = get().member;
+        if (member) {
+          set({ entered: true, activeTab: 'home' });
+        }
+      },
+
       login: (member) => set({ entered: true, member }),
 
-      logout: () => set({ member: null, activeTab: 'account' }),
+      logout: () => set({ member: null, entered: false, activeTab: 'home' }),
 
       setTab: (activeTab) => set({ activeTab }),
 
@@ -44,12 +57,19 @@ export const useSessionStore = create<SessionStore>()(
     }),
     {
       name: 'sango-session',
-      version: 1,
-      partialize: (state) => ({
-        entered: state.entered,
+      // `entered` sengaja tidak disimpan: landing page harus tampil setiap aplikasi dibuka.
+      version: 2,
+      partialize: (state): PersistedSession => ({
         member: state.member,
         history: state.history,
       }),
+      migrate: (persisted): PersistedSession => {
+        const data = (persisted ?? {}) as Partial<PersistedSession>;
+        return {
+          member: data.member ?? null,
+          history: data.history ?? [],
+        };
+      },
     }
   )
 );

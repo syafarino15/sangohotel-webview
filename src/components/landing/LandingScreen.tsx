@@ -40,9 +40,10 @@ const SWIPE_THRESHOLD = 48;
 interface LandingScreenProps {
   onGuest: () => void;
   onMember: () => void;
+  memberName?: string | null;
 }
 
-export const LandingScreen = ({ onGuest, onMember }: LandingScreenProps) => {
+export const LandingScreen = ({ onGuest, onMember, memberName = null }: LandingScreenProps) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const startXRef = useRef<number | null>(null);
 
@@ -127,8 +128,14 @@ export const LandingScreen = ({ onGuest, onMember }: LandingScreenProps) => {
 
               {isLastSlide && index === activeIndex ? (
                 <div className="mt-5 space-y-2">
+                  {memberName ? (
+                    <p className="text-[11px] font-semibold text-sango-cream/80">
+                      Tersimpan di perangkat ini: {memberName}
+                    </p>
+                  ) : null}
                   <Button fullWidth size="lg" onClick={onMember}>
-                    Masuk sebagai Member <ArrowRight size={16} />
+                    {memberName ? 'Lanjut sebagai Member' : 'Masuk sebagai Member'}{' '}
+                    <ArrowRight size={16} />
                   </Button>
                   <button
                     type="button"

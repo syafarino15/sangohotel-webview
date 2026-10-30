@@ -45,7 +45,7 @@ Saat pertama dibuka, webview menampilkan **landing page 3 slide fullscreen** (`c
 - **Masuk sebagai Member** — sheet berisi nama, email, WhatsApp (`MemberLoginSheet`). Data dipakai untuk mengisi otomatis formulir pemesanan.
 - **Lanjut sebagai Guest** — langsung masuk beranda; data pemesan diisi manual.
 
-Sesi disimpan di `localStorage` dengan kunci `sango-session` (`stores/useSessionStore.ts`, `persist` + `partialize`). Yang disimpan hanya `entered`, `member`, dan `history`; tab aktif tidak disimpan agar reload selalu kembali ke Beranda. Menghapus data situs akan mengembalikan ke landing page.
+Sesi disimpan di `localStorage` dengan kunci `sango-session` (`stores/useSessionStore.ts`). Yang disimpan hanya `member` dan `history`; `entered` dan tab aktif sengaja tidak disimpan, sehingga **landing page selalu tampil setiap aplikasi dibuka**. Bila profil member sudah tersimpan, slide terakhir menampilkan nama pemilik akun dan tombolnya berubah menjadi "Lanjut sebagai Member" (tanpa mengisi form lagi).
 
 ## Navigasi Aplikasi
 
