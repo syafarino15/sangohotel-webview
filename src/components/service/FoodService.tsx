@@ -5,6 +5,7 @@ import { Coffee, IceCream, Salad, UtensilsCrossed } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { StickyActionBar } from '@/components/ui/StickyActionBar';
+import { useSessionStore } from '@/stores/useSessionStore';
 import { HOTELS } from '@/data/hotels';
 import { FOOD_MENUS } from '@/data/serviceCatalog';
 import { formatCurrency } from '@/lib/formatters';
@@ -26,6 +27,7 @@ export const FoodService = () => {
   const [hotelId, setHotelId] = useState(HOTELS[0].hotel.id);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [order, setOrder] = useState<ServiceOrder | null>(null);
+  const addHistory = useSessionStore((state) => state.addHistory);
 
   const hotel = HOTELS.find(({ hotel }) => hotel.id === hotelId)?.hotel ?? HOTELS[0].hotel;
   const { itemCount, total } = useMemo(
@@ -48,15 +50,28 @@ export const FoodService = () => {
       return;
     }
     const chosen = FOOD_MENUS.filter((item) => (quantities[item.id] ?? 0) > 0);
+    const code = makeCode();
+    const itemLabel = chosen.length === 1 ? chosen[0].name : `${chosen.length} jenis menu`;
+
     setOrder({
-      code: makeCode(),
+      code,
       service: 'food',
       hotelId: hotel.id,
       hotelName: hotel.name,
-      itemLabel: chosen.length === 1 ? chosen[0].name : `${chosen.length} jenis menu`,
+      itemLabel,
       quantity: itemCount,
       unit: 'Jumlah item',
       total,
+    });
+    addHistory({
+      code,
+      kind: 'food',
+      title: itemLabel,
+      subtitle: `${itemCount} item · ${hotel.name}`,
+      hotelName: hotel.name,
+      total,
+      createdAt: new Date().toISOString(),
+      status: 'REQUESTED',
     });
   };
 

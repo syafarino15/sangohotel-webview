@@ -38,6 +38,30 @@ Katalog ada di `src/data/hotelCatalog.ts` (satu file, mudah diganti saat data as
 
 Harga, ketersediaan, dan tipe kamar adalah **data contoh** untuk demo.
 
+## Landing & Sesi
+
+Saat pertama dibuka, webview menampilkan **landing page 3 slide fullscreen** (`components/landing/LandingScreen.tsx`) dengan tombol "Lewati". Di slide terakhir pengguna memilih:
+
+- **Masuk sebagai Member** — sheet berisi nama, email, WhatsApp (`MemberLoginSheet`). Data dipakai untuk mengisi otomatis formulir pemesanan.
+- **Lanjut sebagai Guest** — langsung masuk beranda; data pemesan diisi manual.
+
+Sesi disimpan di `localStorage` dengan kunci `sango-session` (`stores/useSessionStore.ts`, `persist` + `partialize`). Yang disimpan hanya `entered`, `member`, dan `history`; tab aktif tidak disimpan agar reload selalu kembali ke Beranda. Menghapus data situs akan mengembalikan ke landing page.
+
+## Navigasi Aplikasi
+
+Bottom tab bar 4 tab (`components/nav/BottomTabBar.tsx`):
+
+| Tab | Isi |
+| --- | --- |
+| Beranda | Carousel promo, layanan, daftar hotel, dan seluruh alur booking |
+| Riwayat | Semua transaksi (hotel, rent, food), terbaru di atas |
+| Voucher | Khusus pemesanan hotel: kode, kamar, tanggal, tamu, total |
+| Akun | Profil member (atau tombol masuk), jumlah transaksi, keluar |
+
+Tab bar disembunyikan saat berada di alur booking (checkout/pembayaran/voucher) dan saat layanan Rent/Food dibuka. Tombol Filter dinaikkan otomatis di atas tab bar.
+
+Riwayat terisi otomatis: booking hotel dicatat saat e-voucher terbit (`status: PAID`), sedangkan sewa kendaraan dan pesanan makanan dicatat saat permintaan dikirim (`status: REQUESTED`). Pencatatan memakai kode transaksi sebagai kunci agar tidak dobel.
+
 ## Beranda
 
 Urutan beranda (`src/components/hotels/HotelsScreen.tsx`):
@@ -98,6 +122,9 @@ src/
 ├── app/            layout.tsx (frame 480px, safe-area, DM Sans), page.tsx (orkestrasi step)
 ├── components/     Header, DateGuestPickerModal, RoomCard, RoomDetailModal,
 │                   CheckoutSection, PaymentSection, VoucherSection
+│   ├── landing/    LandingScreen, MemberLoginSheet
+│   ├── nav/        BottomTabBar
+│   ├── account/    HistoryScreen, VoucherListScreen, AccountScreen
 │   ├── home/       HeroCarousel, ServiceGrid
 │   ├── service/    ServiceScreen, RentService, FoodService, QuantityStepper,
 │                   ServiceHotelSelect, ServiceSuccessSheet
@@ -111,10 +138,10 @@ src/
 │   ├── rooms/      RoomsScreen, RoomList, HotelInfoCard
 │   └── common/     StepProgress
 ├── data/           hotelCatalog.ts (4 hotel Sango), serviceCatalog.ts, hotels.ts, mockData.ts
-├── types/          booking.ts, bridge.ts
+├── types/          booking.ts, service.ts, account.ts, bridge.ts
 ├── lib/            formatters, date, pricing, validation, hotelFilter, utils
-├── stores/         useBookingStore.ts
 ├── hooks/          useCountdown, useHostContext, useHostBottomOffset, useWebviewBack
+├── stores/         useBookingStore.ts, useSessionStore.ts (persist localStorage)
 └── services/       bridge.service.ts, voucher.service.ts
 ```
 

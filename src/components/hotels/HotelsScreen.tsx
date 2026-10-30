@@ -74,7 +74,7 @@ export const HotelsScreen = () => {
         <SearchSummaryBar search={search} onOpen={() => setPickerOpen(true)} />
       </div>
 
-      <div className="flex-1 space-y-2.5 px-3 pb-[calc(6rem+var(--host-bottom-offset,0px))] pt-2.5">
+      <div className="flex-1 space-y-2.5 px-3 pb-[calc(10rem+env(safe-area-inset-bottom,0px)+var(--host-bottom-offset,0px))] pt-2.5">
         <HeroCarousel banners={PROMO_BANNERS} onAction={handleBannerAction} />
 
         <ServiceGrid onSelect={openService} />

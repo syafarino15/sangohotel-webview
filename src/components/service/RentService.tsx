@@ -9,6 +9,7 @@ import { formatCurrency } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { StickyActionBar } from '@/components/ui/StickyActionBar';
+import { useSessionStore } from '@/stores/useSessionStore';
 import type { RentCategory, ServiceOrder } from '@/types/service';
 import { QuantityStepper } from './QuantityStepper';
 import { ServiceHotelSelect } from './ServiceHotelSelect';
@@ -36,6 +37,7 @@ export const RentService = () => {
   const [vehicleId, setVehicleId] = useState<string | null>(null);
   const [days, setDays] = useState(1);
   const [order, setOrder] = useState<ServiceOrder | null>(null);
+  const addHistory = useSessionStore((state) => state.addHistory);
 
   const vehicles = useMemo(
     () => (filter === 'all' ? RENT_VEHICLES : RENT_VEHICLES.filter((v) => v.category === filter)),
@@ -49,8 +51,9 @@ export const RentService = () => {
     if (!selected) {
       return;
     }
+    const code = makeCode();
     setOrder({
-      code: makeCode(),
+      code,
       service: 'rent',
       hotelId: hotel.id,
       hotelName: hotel.name,
@@ -58,6 +61,16 @@ export const RentService = () => {
       quantity: days,
       unit: 'Durasi (hari)',
       total,
+    });
+    addHistory({
+      code,
+      kind: 'rent',
+      title: selected.name,
+      subtitle: `${days} hari · ${hotel.name}`,
+      hotelName: hotel.name,
+      total,
+      createdAt: new Date().toISOString(),
+      status: 'REQUESTED',
     });
   };
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { CheckCircle2, Copy, ShieldCheck } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { StepProgress } from '@/components/common/StepProgress';
@@ -7,11 +8,34 @@ import { MockQrCode } from '@/components/voucher/MockQrCode';
 import { VoucherDetails } from '@/components/voucher/VoucherDetails';
 import { VoucherActions } from '@/components/voucher/VoucherActions';
 import { useBookingStore } from '@/stores/useBookingStore';
+import { useSessionStore } from '@/stores/useSessionStore';
 
 export const VoucherSection = () => {
   const booking = useBookingStore((state) => state.booking);
   const payment = useBookingStore((state) => state.payment);
   const showToast = useBookingStore((state) => state.showToast);
+  const addHistory = useSessionStore((state) => state.addHistory);
+
+  useEffect(() => {
+    if (!booking) {
+      return;
+    }
+    addHistory({
+      code: booking.reference,
+      kind: 'hotel',
+      title: booking.roomName,
+      subtitle: `${booking.packageName} · ${booking.nights} malam`,
+      hotelName: booking.hotel.name,
+      total: booking.pricing.total,
+      createdAt: booking.createdAt,
+      status: 'PAID',
+      checkIn: booking.search.checkIn,
+      checkOut: booking.search.checkOut,
+      guestName: booking.guest.bookingForOther
+        ? booking.guest.guestName
+        : booking.guest.fullName,
+    });
+  }, [booking, addHistory]);
 
   if (!booking) {
     return null;

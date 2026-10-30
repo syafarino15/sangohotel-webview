@@ -1,15 +1,17 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { CalendarDays, ChevronRight, ShieldCheck } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { StepProgress } from '@/components/common/StepProgress';
 import { GuestForm } from '@/components/checkout/GuestForm';
+import { MemberSummaryCard } from '@/components/checkout/MemberSummaryCard';
 import { SpecialRequestChips } from '@/components/checkout/SpecialRequestChips';
 import { PriceBreakdown } from '@/components/checkout/PriceBreakdown';
 import { Button } from '@/components/ui/Button';
 import { StickyActionBar } from '@/components/ui/StickyActionBar';
 import { useBookingStore } from '@/stores/useBookingStore';
+import { useSessionStore } from '@/stores/useSessionStore';
 import { getPackageById, getRoomById } from '@/data/hotels';
 import { diffInNights } from '@/lib/date';
 import { formatCurrency, formatDateWithDay } from '@/lib/formatters';
@@ -28,7 +30,16 @@ export const CheckoutSection = () => {
   const startPayment = useBookingStore((state) => state.startPayment);
   const goToStep = useBookingStore((state) => state.goToStep);
   const showToast = useBookingStore((state) => state.showToast);
+  const member = useSessionStore((state) => state.member);
   const [errors, setErrors] = useState<GuestFormErrors>({});
+  const [editingGuest, setEditingGuest] = useState(false);
+
+  useEffect(() => {
+    if (!member) {
+      return;
+    }
+    updateGuest({ fullName: member.fullName, email: member.email, phone: member.phone });
+  }, [member, updateGuest]);
 
   const room = getRoomById(selectedRoomId);
   const roomPackage = getPackageById(room, selectedPackageId);
@@ -105,7 +116,11 @@ export const CheckoutSection = () => {
           </div>
         </section>
 
-        <GuestForm guest={guest} errors={errors} onChange={handleChange} />
+        {member && !editingGuest ? (
+          <MemberSummaryCard member={member} onEdit={() => setEditingGuest(true)} />
+        ) : (
+          <GuestForm guest={guest} errors={errors} onChange={handleChange} />
+        )}
         <SpecialRequestChips
           selected={guest.specialRequests}
           onToggle={toggleSpecialRequest}

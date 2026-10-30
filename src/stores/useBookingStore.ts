@@ -25,7 +25,7 @@ const generateBookingReference = (): string => {
   for (let index = 0; index < 5; index += 1) {
     code += REFERENCE_ALPHABET[Math.floor(Math.random() * REFERENCE_ALPHABET.length)];
   }
-  return `STY-${new Date().getFullYear()}-${code}`;
+  return `SNG-${new Date().getFullYear()}-${code}`;
 };
 
 const initialPayment: PaymentInfo = {
